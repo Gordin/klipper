@@ -12,6 +12,7 @@ class Fan:
         self.printer = config.get_printer()
         self.last_fan_value = 0.
         self.last_fan_time = 0.
+        self.show_fan_value = 0.
         # Read config
         self.max_power = config.getfloat('max_power', 1., above=0., maxval=1.)
         self.kick_start_time = config.getfloat('kick_start_time', 0.1,
@@ -48,6 +49,7 @@ class Fan:
     def set_speed(self, print_time, value):
         if value < self.off_below:
             value = 0.
+        self.show_fan_value = value
         value = max(0., min(self.max_power, value * self.max_power))
         if value == self.last_fan_value:
             return
@@ -75,6 +77,8 @@ class Fan:
     def get_status(self, eventtime):
         tachometer_status = self.tachometer.get_status(eventtime)
         return {
+            'value': self.show_fan_value,
+            'max_power': self.max_power,
             'speed': self.last_fan_value,
             'rpm': tachometer_status['rpm'],
         }
@@ -107,15 +111,28 @@ class PrinterFan:
         gcode = config.get_printer().lookup_object('gcode')
         gcode.register_command("M106", self.cmd_M106)
         gcode.register_command("M107", self.cmd_M107)
+        gcode.register_command("NORMAL_FAN_SPEED", self.cmd_HIGH_FAN_SPEED)
+        gcode.register_command("LOW_FAN_SPEED", self.cmd_LOW_FAN_SPEED)
+        self.printer = config.get_printer()
+        self.gcode = self.printer.lookup_object('gcode')
     def get_status(self, eventtime):
         return self.fan.get_status(eventtime)
     def cmd_M106(self, gcmd):
         # Set fan speed
         value = gcmd.get_float('S', 255., minval=0.) / 255.
-        self.fan.set_speed_from_command(value)
+        self.fan.set_speed_from_command(value * self.fan.max_power)
+        # self.fan.set_speed_from_command(value)
     def cmd_M107(self, gcmd):
         # Turn fan off
         self.fan.set_speed_from_command(0.)
+    def cmd_HIGH_FAN_SPEED(self, gcmd):
+        value = self.fan.last_fan_value / self.fan.max_power
+        self.fan.max_power = 1.
+        self.fan.set_speed_from_command(value)
+    def cmd_LOW_FAN_SPEED(self, gcmd):
+        value = self.fan.last_fan_value / self.fan.max_power
+        self.fan.max_power = 0.8
+        self.fan.set_speed_from_command(value)
 
 def load_config(config):
     return PrinterFan(config)

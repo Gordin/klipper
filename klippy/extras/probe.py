@@ -60,12 +60,17 @@ class ProbeCommandHelper:
         gcode.register_command('Z_OFFSET_APPLY_PROBE',
                                self.cmd_Z_OFFSET_APPLY_PROBE,
                                desc=self.cmd_Z_OFFSET_APPLY_PROBE_help)
+        gcode.register_command('MKS28', self.cmd_MKS28,
+                               desc=self.cmd_MKS28_help)
+        gcode.register_command('RESET_ZOFFSET', self.cmd_RESET_ZOFFSET,
+                               desc=self.cmd_RESET_ZOFFSET_help)
     def _move(self, coord, speed):
         self.printer.lookup_object('toolhead').manual_move(coord, speed)
     def get_status(self, eventtime):
         return {'name': self.name,
                 'last_query': self.last_state,
-                'last_z_result': self.last_z_result}
+                'last_z_result': self.last_z_result,
+                'z_offset': self.z_offset}
     cmd_QUERY_PROBE_help = "Return the status of the z-probe"
     def cmd_QUERY_PROBE(self, gcmd):
         if self.query_endstop is None:
@@ -171,6 +176,21 @@ class ProbeCommandHelper:
             % (self.name, new_calibrate))
         configfile = self.printer.lookup_object('configfile')
         configfile.set(self.name, 'z_offset', "%.3f" % (new_calibrate,))
+    cmd_MKS28_help = "MKS G28 --> nozzle_x_position - probe_x_position, nozzle_y_position - probe_y_position"
+    def cmd_MKS28(self,gcmd):
+        toolhead = self.printer.lookup_object('toolhead')
+        pos = toolhead.get_position()
+        pos[0] -= self.x_offset
+        pos[1] -= self.y_offset
+        self._move(pos, self.speed)
+    cmd_RESET_ZOFFSET_help = "Reset the probe's z_offset"
+    def cmd_RESET_ZOFFSET(self,gcmd):
+        self.gcode.respond_info(
+            "%s: Reset z_offset: %.3f\n"
+            "The SAVE_CONFIG command will update the printer config file\n"
+            "with the above and restart the printer." % (self.name, 0.000))
+        configfile = self.printer.lookup_object('configfile')
+        configfile.set(self.name, 'z_offset', "%.3f" % (0.000,))
 
 # Homing via probe:z_virtual_endstop
 class HomingViaProbeHelper:
@@ -347,6 +367,12 @@ class ProbeSessionHelper:
                 if retries >= params['samples_tolerance_retries']:
                     raise gcmd.error("Probe samples exceed samples_tolerance")
                 gcmd.respond_info("Probe samples exceed tolerance. Retrying...")
+                # Change by Artillery: (ignore samples tolerance and just
+                #                       continue with next point?)
+                # -     raise gcmd.error("Probe samples exceed samples_tolerance")
+                # - gcmd.respond_info("Probe samples exceed tolerance. Retrying...")
+                # - retries += 1
+                # +     break
                 retries += 1
                 positions = []
             # Retract
@@ -454,6 +480,7 @@ class ProbePointsHelper:
         probe_session = probe.start_probe_session(gcmd)
         probe_num = 0
         while 1:
+            self.gcode.respond_info("MKS count=%d" % (probe_num))
             self._raise_tool(not probe_num)
             if probe_num >= len(self.probe_points):
                 results = probe_session.pull_probed_results()
