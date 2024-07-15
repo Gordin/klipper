@@ -7,6 +7,7 @@ import os, sys, logging, io
 reload(sys)
 sys.setdefaultencoding('utf-8')
 VALID_GCODE_EXTS = ['gcode', 'g', 'gco']
+MKS_PLR = '/home/mks/mks_plr/'
 
 DEFAULT_ERROR_GCODE = """
 {% if 'heaters' in printer %}
@@ -195,19 +196,21 @@ class VirtualSD:
     def cmd_POC_PRINT_FILE(self, gcmd):
         gcmd.respond_raw("POC")
     def cmd_MKS_LOAD_FILE_POSITION(self, gcmd):
-        with open('/home/mks/mks_plr/heater_bed/target', 'r') as target_190:
+        with open(MKS_PLR + 'heater_bed/target', 'r') as target_190:
             m_190 = target_190.read()
         _m_190 = str(m_190)
-        with open('/home/mks/mks_plr/extruder/target', 'r') as extruder_109:
+        with open(MKS_PLR + 'extruder/target', 'r') as extruder_109:
             m_109 = extruder_109.read()
         _m_109 = str(m_109)
-        with open('/home/mks/mks_plr/virtual_sdcard/file_position', 'r') as file_position:
-            fp = file_position.read()
-        with open('/home/mks/mks_plr/gcode_move/position', 'r') as position:
+        with open(MKS_PLR + 'virtual_sdcard/file_position', 'r') as file_pos:
+            fp = file_pos.read()
+        with open(MKS_PLR + 'gcode_move/position', 'r') as position:
             _pos = position.read()
         pos = list(eval(_pos))
-        line = "G28\nG90\nG1 X" + str(pos[0]) + " Y" + str(pos[1]) + " Z" + str(pos[2]) + "\nM109 S" + _m_109 + "\nM190 S" + _m_190
-        # line = "G28\nG90\nG1 X" + str(g_pos[0]) + " Y" + str(g_pos[1]) + " Z" + str(g_pos[2]) + "\nM109 S" + _m_109 + "\nM190 S" + _m_190
+        line = "G28\nG90\nG1 X" + str(pos[0]) + " Y" + str(pos[1]) + " Z" +\
+                str(pos[2]) + "\nM109 S" + _m_109 + "\nM190 S" + _m_190
+        # line = "G28\nG90\nG1 X" + str(g_pos[0]) + " Y" + str(g_pos[1]) + " Z"\
+        # + str(g_pos[2]) + "\nM109 S" + _m_109 + "\nM190 S" + _m_190
         self.gcode.run_script_from_command(line)
         gcmd.respond_raw("%s\n" % (line, ))
         self.file_position = int(fp)

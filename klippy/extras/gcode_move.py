@@ -6,6 +6,9 @@
 import logging
 #import json
 
+MKS_PLR = '/home/mks/mks_plr/'
+GCODE_MOVE = MKS_PLR + 'gcode_move/'
+
 class GCodeMove:
     def __init__(self, config):
         self.printer = printer = config.get_printer()
@@ -27,7 +30,8 @@ class GCodeMove:
         handlers = [
             'G1', 'G20', 'G21',
             'M82', 'M83', 'G90', 'G91', 'G92', 'M220', 'M221',
-            'SET_GCODE_OFFSET', 'SAVE_GCODE_STATE', 'RESTORE_GCODE_STATE', 'GET_GCODE_STATE'
+            'SET_GCODE_OFFSET', 'SAVE_GCODE_STATE', 'RESTORE_GCODE_STATE',
+            'GET_GCODE_STATE'
         ]
         for cmd in handlers:
             func = getattr(self, 'cmd_' + cmd)
@@ -119,6 +123,8 @@ class GCodeMove:
     # G-Code movement commands
     def cmd_G1(self, gcmd):
         # Move
+        params = gcmd.get_command_parameters()
+
         if 'G' in params and 'Z' in params:
             if self.v_sd.cmd_from_sd:
                 self.content = {
@@ -126,8 +132,8 @@ class GCodeMove:
                     'Z': params['Z']
                 }
                 # with open("/home/mks/mks_plr_height", 'w') as height:
-                #     json.dump(content, height) params = gcmd.get_command_parameters()
-                # Contents of that file: {"Z":".25","commandline":"G1 Z.25 F600"}
+                #     json.dump(content, height)
+                # Contents file: {"Z":".25","commandline":"G1 Z.25 F600"}
         try:
             for pos, axis in enumerate('XYZ'):
                 if axis in params:
@@ -304,19 +310,19 @@ class GCodeMove:
     def cmd_MKS_GET_STATE(self, gcmd):
         gcode = self.printer.lookup_object('gcode')
         toolhead = self.printer.lookup_object('toolhead')
-        with open('/home/mks/mks_plr/gcode_move/position', 'r') as position:
+        with open(GCODE_MOVE + 'position', 'r') as position:
             _pos = position.read()
         pos = list(eval(_pos))
-        with open('/home/mks/mks_plr/gcode_move/gcode_position', 'r') as gcode_position:
+        with open(GCODE_MOVE + 'gcode_position', 'r') as gcode_position:
             _g_pos = gcode_position.read()
         g_pos = list(eval(_pos))
-        with open('/home/mks/mks_plr/gcode_move/absolute_coordinates', 'r') as absolute_coordinates:
-            _absolute_coordinates = absolute_coordinates.read()
+        with open(GCODE_MOVE + 'absolute_coordinates', 'r') as absolute_coords:
+            _absolute_coordinates = absolute_coords.read()
         ac = bool(_absolute_coordinates)
-        with open('/home/mks/mks_plr/gcode_move/absolute_extrude', 'r') as absolute_extrude:
+        with open(GCODE_MOVE + 'absolute_extrude', 'r') as absolute_extrude:
             _absolute_extrude = absolute_extrude.read()
         ae = bool(_absolute_extrude)
-        with open('/home/mks/mks_plr/gcode_move/speed', 'r') as speed:
+        with open(GCODE_MOVE + 'speed', 'r') as speed:
             _speed = speed.read()
         gcmd.respond_info("position: %s\n"
                           "gcode_position: %s\n"

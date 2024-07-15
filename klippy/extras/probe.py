@@ -176,7 +176,8 @@ class ProbeCommandHelper:
             % (self.name, new_calibrate))
         configfile = self.printer.lookup_object('configfile')
         configfile.set(self.name, 'z_offset', "%.3f" % (new_calibrate,))
-    cmd_MKS28_help = "MKS G28 --> nozzle_x_position - probe_x_position, nozzle_y_position - probe_y_position"
+    cmd_MKS28_help = "MKS G28 --> nozzle_x_position - probe_x_position,"\
+                                " nozzle_y_position - probe_y_position"
     def cmd_MKS28(self,gcmd):
         toolhead = self.printer.lookup_object('toolhead')
         pos = toolhead.get_position()
@@ -367,13 +368,11 @@ class ProbeSessionHelper:
                 if retries >= params['samples_tolerance_retries']:
                     raise gcmd.error("Probe samples exceed samples_tolerance")
                 gcmd.respond_info("Probe samples exceed tolerance. Retrying...")
+                retries += 1
                 # Change by Artillery: (ignore samples tolerance and just
                 #                       continue with next point?)
-                # -     raise gcmd.error("Probe samples exceed samples_tolerance")
-                # - gcmd.respond_info("Probe samples exceed tolerance. Retrying...")
-                # - retries += 1
-                # +     break
-                retries += 1
+                # the part from the if retries >= ... until here is replaced
+                # with just a `break`?
                 positions = []
             # Retract
             if len(positions) < sample_count:
