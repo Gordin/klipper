@@ -1,7 +1,9 @@
-This is a fork of Klipper by Artillery made for use on the Sidewinder X4 Plus.
+This is a fork of Klipper based on the code shipped by Artillery for the
+Sidewinder X4 Plus (mostly copy&pasted and slightly refactored).
 I'm not an Artillery employee, I just ported the changes shipped by Artillery
-to the latest master. In the latest update from Artillery, their changes are
-based on commit 3387a9c23d940c7d449f197b272616eda11a5e3d
+to the latest master. Also, I'm new to klipper and 3d-printing in general,
+the changelog below might be completely wrong. Their Changes in the latest
+update were based on commit 3387a9c23d940c7d449f197b272616eda11a5e3d
 from Sun Jul 24 08:49:25 2022 -0400
 
 Changelog (made by me, not Artillery):
