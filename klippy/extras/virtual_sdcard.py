@@ -167,7 +167,7 @@ class VirtualSD:
         if filename[0] == '/':
             filename = filename[1:]
         self._load_file(gcmd, filename, check_subdirs=True)
-        if resume:
+        if do_resume:
             self.do_resume()
     cmd_SDCARD_SELECT_FILE_help = "Select a SD file.  "\
         "May include files in subdirectories."
