@@ -4,7 +4,7 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import os, sys, logging, io
-reload(sys)
+# reload(sys)
 sys.setdefaultencoding('utf-8')
 VALID_GCODE_EXTS = ['gcode', 'g', 'gco']
 MKS_PLR = '/home/mks/mks_plr/'
