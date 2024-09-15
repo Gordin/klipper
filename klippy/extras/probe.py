@@ -67,10 +67,11 @@ class ProbeCommandHelper:
     def _move(self, coord, speed):
         self.printer.lookup_object('toolhead').manual_move(coord, speed)
     def get_status(self, eventtime):
+        x_offset, y_offset, z_offset = self.probe.get_offsets()
         return {'name': self.name,
                 'last_query': self.last_state,
                 'last_z_result': self.last_z_result,
-                'z_offset': self.z_offset}
+                'z_offset': z_offset}
     cmd_QUERY_PROBE_help = "Return the status of the z-probe"
     def cmd_QUERY_PROBE(self, gcmd):
         if self.query_endstop is None:
@@ -364,10 +365,13 @@ class ProbeSessionHelper:
             positions.append(pos)
             # Check samples tolerance
             z_positions = [p[2] for p in positions]
-            if max(z_positions)-min(z_positions) > params['samples_tolerance']:
+            deviation = max(z_positions)-min(z_positions)
+            if deviation > params['samples_tolerance']:
                 if retries >= params['samples_tolerance_retries']:
-                    raise gcmd.error("Probe samples exceed samples_tolerance")
-                gcmd.respond_info("Probe samples exceed tolerance. Retrying...")
+                    raise gcmd.error("Probe samples exceed"
+                            " maximum samples_tolerance" )
+                gcmd.respond_info("Probe samples deviation (%.4f) exceed \
+tolerance (%.4f). Retrying..." % (deviation, params['samples_tolerance']))
                 retries += 1
                 # Change by Artillery: (ignore samples tolerance and just
                 #                       continue with next point?)
