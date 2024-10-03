@@ -8,6 +8,14 @@ from Sun Jul 24 08:49:25 2022 -0400
 
 Changelog (made by me, not Artillery):
 
+* `config/printer-artillery-sidewinder-x4-plus-1.5.cfg`
+    * This is the config file directly from the 1.5 system image. It will
+      NOT work in the default place, this is just for reference. Their setup
+      has a folder `~/klipper_config` with different config files. This one
+      is called `printer.cfg` there. it also imports some other configs that
+      are found in that folder. At least one of those is probably updated by
+      some automated script to populate it with the correct file under
+      `/dev/serial/by-id/...` to communicate with the MCU.
 * `klippy/configfile.py`
     * After saving the config file, firmware and host Software is restarted,
       instead of just the host
@@ -41,12 +49,15 @@ Changelog (made by me, not Artillery):
 * `klippy/extras/probe.py`
     * Instead of stopping when Probe samples exceed `samples_tolerance`, just
       ignore it, stop probing, and calculate the average whith the values that
-      are already there. (wtf?) I reverted that change and put it in a comment
-      (Still need to test if that breaks stuff)
+      are already there. (wtf?) I reverted that change and put it in a comment.
+      Now it works like normal (When the maximum amount of failures is exceeded,
+      probing is aborted and printing doesn't start).
     * Adds `z-offset` to `get_status` of probes
     * Adds `MKS28` and `RESET_ZOFFSET` commands to the probing stuff
-      MKS28 sems to be G28, but it compensates for the probe position/offset
+      MKS28 sems to be G28, but it compensates for the probe position/offset.
       RESET_ZOFFSET sets the z-offset to 0 in the config file
+    * they added their own counter for how many times each point is probed. I
+      removed this, since current klipper has its own counter for this
 * `klippy/extras/virtual_sdcard.py`
     * Adds `POC_PRINT_FILE` command ("Loads a SD file and resume the print.")
       Literally just `gcmd.respond_raw("POC")`. No idea what that does though 🤷
@@ -71,6 +82,23 @@ Changelog (made by me, not Artillery):
       `self.do_resume()` at the end.
     * They also left a `# logging.info("%s", lines)` for debugging. I left them
       in case someone else wants to debug stuff...
+* `klippy/extras/shaper_calibrate.py`
+    * Replaced original AUTOTUNE_SHAPERS array that has 5 different shapers with
+      just array with just `['zv']`
+    * Gave the `find_best_shaper` method an extra parameter `axis_name`
+    * They use this parameter to force the frequency to be between 33 and 38 
+      for the y-axis:
+        ```
+        if (shaper.freq < 33 and axis_name == 'y'):
+            shaper = shaper._replace(freq=33)
+        if (shaper.freq > 38 and axis_name == 'y'):
+            shaper = shaper._replace(freq=38)
+        ```
+    * I removed their modifications here since I want to test the different
+      methods for myself
+* `klippy/extras/resonance_tester.py`
+    * Added `axis_name` to the call to `find_best_shaper`. I also removed
+      this change
 * `klippy/gcode.py`
     * they commented out `self.gcode_handlers = self.base_gcode_handlers` in
       `_handleShutdown(self)`. I'm guessing they don't want their custom
@@ -86,6 +114,7 @@ Changelog (made by me, not Artillery):
       assume `M109` be called by the MKS anyway?
 * `klippy/mcu.py`
     * Doubles `TRSYNC_TIMEOUT` from 0.025 to 0.05 (in seconds I guess)
+* 
 
 
 Welcome to the Klipper project!
