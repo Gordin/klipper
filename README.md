@@ -22,6 +22,9 @@ How to update klipper:
    ```
 3. Flash/Install klipper with flash script. You can use this script later
    to flash again
+   This will flash WITHOUT Bootloader for the MCU. If you need a Bootloader
+   for some reason, you probably know how to adjust things yourself. The
+   menuconfig config file used in the script is `./.config_stm32f401`.
    ```
    cd ~/klipper
    ./flash.sh
