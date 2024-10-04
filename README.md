@@ -38,9 +38,10 @@ How to update moonraker:
 1. Change moonraker repo to fork with artillery additions:
    ```
    sudo systemctl stop klipper moonraker moonraker-obico.service makerbase-client
+   cd ~
+   mv moonraker moonraker_bak
+   git clone https://github.com/Gordin/moonraker.git
    cd moonraker
-   git checkout -- .
-   git remote set-url origin https://github.com/Gordin/moonraker.github
    git checkout sidewinderX4Plus
    ```
 2. Link custom moonraker.conf from the repo
