@@ -26,10 +26,15 @@ How to update klipper:
    cd ~/klipper
    ./flash.sh
    ```
+3. restart klipper (or skip and continue with moonraker update)
+   ```
+   sudo systemctl restart klipper
+   ```
 
 How to update moonraker:
 1. Change moonraker repo to fork with artillery additions:
    ```
+   sudo systemctl stop klipper moonraker moonraker-obico.service makerbase-client
    cd moonraker
    git checkout -- .
    git remote set-url origin https://github.com/Gordin/moonraker.github
@@ -54,7 +59,7 @@ How to update moonraker:
    ```
 5. Restart services
    ```
-   sudo systemctl restart klipper moonraker moonraker-obico.service
+   sudo systemctl restart klipper moonraker moonraker-obico.service makerbase-client
    ```
 
 Changelog (made by me, not Artillery):
