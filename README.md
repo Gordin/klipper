@@ -6,6 +6,57 @@ the changelog below might be completely wrong. Their Changes in the latest
 update were based on commit 3387a9c23d940c7d449f197b272616eda11a5e3d
 from Sun Jul 24 08:49:25 2022 -0400
 
+How to update klipper:
+1. Change klipper repo to this fork:
+   ```
+   sudo systemctl stop klipper
+   cd ~
+   mv klipper klipper_bak
+   git clone https://github.com/Gordin/klipper.git
+   cd klipper
+   git checkout sidewinderX4Plus
+   ```
+2. Copy prepared printer.cfg from this repo
+   ```
+   cp ~/klipper/config/printer-artillery-sidewinder-x4-plus-1.5.cfg ~/klipper_config/printer.cfg
+   ```
+3. Flash/Install klipper with flash script. You can use this script later
+   to flash again
+   ```
+   cd ~/klipper
+   ./flash.sh
+   ```
+
+How to update moonraker:
+1. Change moonraker repo to fork with artillery additions:
+   ```
+   cd moonraker
+   git checkout -- .
+   git remote set-url origin https://github.com/Gordin/moonraker.github
+   git checkout sidewinderX4Plus
+   ```
+2. Link custom moonraker.conf from the repo
+   ```
+   ln -sf ~/moonraker/artillery_stuff/moonraker.conf klipper_config/moonraker.conf
+   ```
+3. setup folder structure for moonraker
+   ```
+   mkdir -p ~/printer_data
+   ln -nsf ~/klipper_config ~/printer_data/config
+   ln -nsf ~/.moonraker_database ~/printer_data/database
+   ln -nsf ~/gcode_files ~/printer_data/gcodes
+   ln -nsf ~/klipper_logs ~/printer_data/logs
+   ```
+4. Setup timelaps plugin
+   ```
+   cd ~/moonraker-timelapse-main
+   make install
+   ```
+5. Restart services
+   ```
+   sudo systemctl restart klipper moonraker moonraker-obico.service
+   ```
+
 Changelog (made by me, not Artillery):
 
 * `config/printer-artillery-sidewinder-x4-plus-1.5.cfg`
